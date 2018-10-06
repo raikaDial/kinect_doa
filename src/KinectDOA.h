@@ -2,7 +2,9 @@
 #define KINECT_DOA_H_INCLUDED
 
 #include <ros/ros.h>
-#include "minidsp.h" // For GCCPHAT
+extern "C" {
+	#include "minidsp.h" // For GCCPHAT
+}
 
 class KinectDOA {
 	public:

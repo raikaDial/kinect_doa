@@ -1,0 +1,4 @@
+<launch>
+	<node type="kinect_doa_node" pkg="kinect_doa" name="kinect_doa_node" output="screen"/>
+</launch>
+

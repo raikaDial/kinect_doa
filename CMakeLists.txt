@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(kinect_doa)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -10,7 +10,12 @@ project(kinect_doa)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   std_msgs
+  roslaunch
 )
+
+roslaunch_add_file_check(launch)
+
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -120,9 +125,9 @@ include_directories(
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/kinect_doa.cpp
-# )
+add_library(minidsp
+  src/minidsp.c
+)
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -132,7 +137,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(kinect_doa_node src/kinect_doa_node.cpp src/KinectDOA.cpp src/minidsp.c src/ofxKinectExtras.cpp)
+add_executable(kinect_doa_node src/kinect_doa_node.cpp src/KinectDOA.cpp src/ofxKinectExtras.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -146,6 +151,7 @@ add_dependencies(kinect_doa_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 ## Specify libraries to link a library or executable target against
 target_link_libraries(kinect_doa_node
   ${catkin_LIBRARIES}
+  minidsp
   freenect
   fftw3
 )
