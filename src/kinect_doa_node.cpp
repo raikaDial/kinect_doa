@@ -30,6 +30,7 @@ class KinectDOANode {
 			if (freenect_init(&m_f_ctx, NULL) < 0) {
 				ROS_ERROR("freenect_init() failed\n");
 			}
+			freenect_set_log_level(m_f_ctx, FREENECT_LOG_FATAL);
 
 			// Need to upload special firmware for Kinect #1473
 			// For some reason, if we try to upload this when the camera and motor subdevices are selected, the upload will
@@ -51,7 +52,7 @@ class KinectDOANode {
 			}
 
 			// Now connect to all the subdevices we care about
-			bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO));
+			bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO | FREENECT_DEVICE_MOTOR));
 
 			// Initialize sound buffers
 			for(int i=0; i<4; ++i) {
@@ -122,12 +123,14 @@ class KinectDOANode {
 
 		void freenectThreadFunc() {
 			freenect_set_audio_in_callback(m_f_dev, audioInCallback);
+			freenect_set_led(m_f_dev, LED_RED);
 			freenect_start_audio(m_f_dev);
 
 			while((freenect_process_events(m_f_ctx) >= 0) && ros::ok());
 
 			// Close everything down
 			freenect_stop_audio(m_f_dev);
+			freenect_set_led(m_f_dev, LED_BLINK_GREEN);
 			freenect_close_device(m_f_dev);
 			freenect_shutdown(m_f_ctx);
 		}

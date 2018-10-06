@@ -12,14 +12,12 @@ KinectDOA::KinectDOA(ros::NodeHandle nh) : m_nh(nh), m_sample_freq(16000), m_las
 	// Retrieve speed of sound if specified
 	ros::NodeHandle pr_nh("~");
 	pr_nh.param<double>("sound_speed", m_sound_speed, 340);
-	pr_nh.param<double>("white_noise_ratio", m_white_nose_ratio, 0.65);
+	pr_nh.param<double>("white_noise_ratio", m_white_noise_ratio, 0.65);
+	pr_nh.param<double>("numsamples_xcor", m_numsamples_xcor, 512*16);
 
 	// Compute the maximum width of our cross-correlation as limited by array
 	//     geometry, the speed of sound, and our sampling frequency
 	m_max_lag = fabs(m_mic_positions[0] - m_mic_positions[3])/m_sound_speed*m_sample_freq;
-
-	// Number of samples used to calculate the cross-correlation
-	m_numsamples_xcor = 512*16; // About a half-second's worth
 
 	// Initialize containers for microphone data
 	for(size_t i=0; i<4; ++i) {
@@ -38,7 +36,7 @@ bool KinectDOA::isNoise() {
 		uint64_t sumd0 = 0, sumd1 = 0;
 		for(int j=1; j<m_numsamples_xcor; ++j) {
 			sumd0 += abs(m_xcor_data[i][j]);
-			sumd1 += abs(m_xcor_data[i][j]-xcor_data[i][j-1]);
+			sumd1 += abs(m_xcor_data[i][j]-m_xcor_data[i][j-1]);
 		}
 		if(((double)sumd1)/((double)sumd0) < m_white_noise_ratio) {
 			return false;
@@ -74,5 +72,5 @@ double KinectDOA::findAngle() {
 		else m_last_angle_estimate = -asin(sin_angle)*180/M_PI;
 	}
 
-	return m_last_angle_estimate
+	return m_last_angle_estimate;
 }
