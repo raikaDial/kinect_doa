@@ -11,6 +11,18 @@
 #include <libfreenect/libfreenect_audio.h>
 #include "ofxKinectExtras.h"
 
+KinectDOANode* kinect_doa_node;
+
+// Callback to process microphone data.
+void audioInCallback(freenect_device* dev, int num_samples,
+	int32_t* mic1, int32_t* mic2, int32_t* mic3, int32_t* mic4,
+	int16_t* cancelled, void *unknown
+) {
+
+	std::vector<int32_t*> sound_packet{mic1, mic2, mic3, mic4}; // Easier to iterate
+	kinect_doa_node -> processAudioPacket(sound_packet);
+}
+
 class KinectDOANode {
 	public:
 		KinectDOANode(ros::NodeHandle nh) : m_nh(nh), m_kinect_doa(nh), m_xcor_counter(0), m_sound_data_ready(false) 
@@ -79,13 +91,7 @@ class KinectDOANode {
 			return true;
 		}
 
-		void audioInCallback(freenect_device* dev, int num_samples,
-			int32_t* mic1, int32_t* mic2, int32_t* mic3, int32_t* mic4,
-			int16_t* cancelled, void *unknown
-		) {
-
-			int32_t* sound_packet[4] = {mic1, mic2, mic3, mic4}; // Easier to iterate
-
+		void processAudioPacket(const std::vector<int32_t*> & sound_packet) {
 			// Store microphone data
 			for(size_t i=0; i<m_sound_buffers.size(); ++i) {
 				for(size_t j=0; j<num_samples; ++j) {
@@ -116,16 +122,11 @@ class KinectDOANode {
 				boost::unique_lock<boost::mutex> lock(m_sound_data_ready_mutex);
 				m_sound_data_ready = true;
 				m_sound_data_ready_cond.notify_all();
-			}
-
+			}	
 		}
 
 		void freenectThreadFunc() {
-			// Register audio callback and start data collection
-			boost::function<void(freenect_device*, int*, int32_t*, int32_t*, int32_t*, int32_t*, int16_t*, void*)> audio_cb =
-				 boost::bind(&KinectDOANode::audioInCallback, this);
-			//freenect_set_audio_in_callback(m_f_dev, &KinectDOANODE::audioInCallback);
-
+			freenect_set_audio_in_callback(m_f_dev, audioInCallback);
 
 			//freenect_set_audio_in_callback(m_f_dev, boost::bind(&KinectDOANode::audioInCallback, this));
 			freenect_start_audio(m_f_dev);
@@ -179,8 +180,13 @@ int main(int argc, char** argv) {
 	ros::init(argc, argv, "kinect_doa_node");
 	ros::NodeHandle nh;
 
+	kinect_doa_node = new KinectDOANode(nh);
 
+	while(ros::ok()) {
+		kinect_doa_node -> update();
+		ros::spinOnce();
+	}
 
-
+	delete kinect_doa_node;
 
 }
