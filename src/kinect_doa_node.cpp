@@ -11,17 +11,12 @@
 #include <libfreenect/libfreenect_audio.h>
 #include "ofxKinectExtras.h"
 
-KinectDOANode* kinect_doa_node;
 
 // Callback to process microphone data.
 void audioInCallback(freenect_device* dev, int num_samples,
 	int32_t* mic1, int32_t* mic2, int32_t* mic3, int32_t* mic4,
 	int16_t* cancelled, void *unknown
-) {
-
-	std::vector<int32_t*> sound_packet{mic1, mic2, mic3, mic4}; // Easier to iterate
-	kinect_doa_node -> processAudioPacket(sound_packet);
-}
+);
 
 class KinectDOANode {
 	public:
@@ -91,7 +86,7 @@ class KinectDOANode {
 			return true;
 		}
 
-		void processAudioPacket(const std::vector<int32_t*> & sound_packet) {
+		void processAudioPacket(const std::vector<int32_t*> & sound_packet, int num_samples) {
 			// Store microphone data
 			for(size_t i=0; i<m_sound_buffers.size(); ++i) {
 				for(size_t j=0; j<num_samples; ++j) {
@@ -127,8 +122,6 @@ class KinectDOANode {
 
 		void freenectThreadFunc() {
 			freenect_set_audio_in_callback(m_f_dev, audioInCallback);
-
-			//freenect_set_audio_in_callback(m_f_dev, boost::bind(&KinectDOANode::audioInCallback, this));
 			freenect_start_audio(m_f_dev);
 
 			while((freenect_process_events(m_f_ctx) >= 0) && ros::ok());
@@ -173,6 +166,17 @@ class KinectDOANode {
 		freenect_device* m_f_dev;
 		
 };
+
+KinectDOANode* kinect_doa_node;
+
+void audioInCallback(freenect_device* dev, int num_samples,
+	int32_t* mic1, int32_t* mic2, int32_t* mic3, int32_t* mic4,
+	int16_t* cancelled, void *unknown
+) {
+
+	std::vector<int32_t*> sound_packet{mic1, mic2, mic3, mic4}; // Easier to iterate
+	kinect_doa_node -> processAudioPacket(sound_packet, num_samples);
+}
 
 
 int main(int argc, char** argv) {
