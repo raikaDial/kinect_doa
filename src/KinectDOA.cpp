@@ -22,6 +22,8 @@ KinectDOA::KinectDOA(ros::NodeHandle nh) : m_nh(nh), m_sample_freq(16000), m_las
 	// Initialize containers for microphone data
 	for(size_t i=0; i<4; ++i) {
 		m_xcor_data.push_back(new double[m_numsamples_xcor]);
+		m_sumd0.push_back(0);
+		m_sumd1.push_back(0);
 	}
 }
 
@@ -33,12 +35,7 @@ KinectDOA::~KinectDOA() {
 
 bool KinectDOA::isNoise() {
 	for(int i=0; i<4; ++i) {
-		uint64_t sumd0 = 0, sumd1 = 0;
-		for(int j=1; j<m_numsamples_xcor; ++j) {
-			sumd0 += abs(m_xcor_data[i][j]);
-			sumd1 += abs(m_xcor_data[i][j]-m_xcor_data[i][j-1]);
-		}
-		if(((double)sumd1)/((double)sumd0) < m_white_noise_ratio) {
+		if(((double)m_sumd1[i])/m_sumd0[i] < m_white_noise_ratio) {
 			return false;
 		}
 	}

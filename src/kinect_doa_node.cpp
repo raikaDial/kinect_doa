@@ -92,9 +92,18 @@ class KinectDOANode {
 			for(size_t i=0; i<m_sound_buffers.size(); ++i) {
 				for(size_t j=0; j<num_samples; ++j) {
 					m_sound_buffers[i].push_back(sound_packet[i][j]);
+
+					// Update sums for white noise filter
+					if(m_sound_buffers[i].size() > 1) {
+						m_sumd0[i] += abs(m_sound_buffers[i].end()[-1]);
+						m_sumd1[i] += abs(m_sound_buffers[i].end()[-1] - m_sound_buffers[i].end()[-2])
+					}
 				}
 				// Rolling buffer
 				while(m_sound_buffers[i].size() > m_kinect_doa.m_numsamples_xcor) {
+					m_sumd0[i] -= abs(m_sound_buffers[i][1]);
+					m_sumd1[i] -= abs(m_sound_buffers[i][1] - m_sound_buffers[i][0]);
+
 					m_sound_buffers[i].pop_front();
 				}
 			}
