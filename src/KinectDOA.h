@@ -9,11 +9,13 @@ class KinectDOA {
 		KinectDOA(ros::NodeHandle nh);
 		~KinectDOA();
 
+		double findAngle();
+
+		std::vector<double*> m_xcor_data;
 		unsigned int m_numsamples_xcor;
 
 	private:
-		bool isNoise(); 
-		double findAngle();
+		bool isNoise();
 
 		ros::NodeHandle m_nh;
 
@@ -22,7 +24,6 @@ class KinectDOA {
 		double m_sound_speed;
 		double m_sample_freq;
 		unsigned int m_max_lag;
-		std::vector<double*> m_xcor_data;
 };
 
 #endif // KINECT_DOA_H_INCLUDED

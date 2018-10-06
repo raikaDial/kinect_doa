@@ -22,7 +22,6 @@ class KinectDOANode {
 			// Initialize freenect context
 			if (freenect_init(&m_f_ctx, NULL) < 0) {
 				ROS_ERROR("freenect_init() failed\n");
-				return 1;
 			}
 
 			// Need to upload special firmware for Kinect #1473
@@ -35,17 +34,17 @@ class KinectDOANode {
 				freenect_set_fw_address_nui(m_f_ctx, ofxKinectExtras::getFWData1473(), ofxKinectExtras::getFWSize1473());
 				freenect_set_fw_address_k4w(m_f_ctx, ofxKinectExtras::getFWDatak4w(), ofxKinectExtras::getFWSizek4w());
 				
-				bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO))
+				bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO));
 				
 				if(status) {
-					ROS_INFO("Firmware upload successful.\n")
+					ROS_INFO("Firmware upload successful.\n");
 					freenect_close_device(m_f_dev);
 					freenect_shutdown(m_f_ctx);
 				}
 			}
 
 			// Now connect to all the subdevices we care about
-			bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO))
+			bool status = freenectConnect((freenect_device_flags)(FREENECT_DEVICE_AUDIO));
 
 			// Initialize sound buffers
 			for(int i=0; i<4; ++i) {
@@ -58,7 +57,7 @@ class KinectDOANode {
 		}
 
 		~KinectDOANode() {
-			m_freenect_thread.join();
+			m_freenect_thread -> join();
 			delete m_freenect_thread;
 		}
 
@@ -67,7 +66,7 @@ class KinectDOANode {
 			int num_devices = freenect_num_devices(m_f_ctx);
 			if (num_devices < 1) {
 				ROS_ERROR("Found no Kinect devices.\n");
-				freenect_shutdown(f_ctx);
+				freenect_shutdown(m_f_ctx);
 				return false;
 			}
 
@@ -114,7 +113,7 @@ class KinectDOANode {
 				}
 
 				// Signal main thread that data is ready.
-				boost::unique_lock<boost::mutex> lock(data_ready_mutex);
+				boost::unique_lock<boost::mutex> lock(m_sound_data_ready_mutex);
 				m_sound_data_ready = true;
 				m_sound_data_ready_cond.notify_all();
 			}
@@ -123,7 +122,12 @@ class KinectDOANode {
 
 		void freenectThreadFunc() {
 			// Register audio callback and start data collection
-			freenect_set_audio_in_callback(m_f_dev, boost::bind(&KinectDOANode::audioInCallback, this));
+			boost::function<void(freenect_device*, int*, int32_t*, int32_t*, int32_t*, int32_t*, int16_t*, void*)> audio_cb =
+				 boost::bind(&KinectDOANode::audioInCallback, this);
+			//freenect_set_audio_in_callback(m_f_dev, &KinectDOANODE::audioInCallback);
+
+
+			//freenect_set_audio_in_callback(m_f_dev, boost::bind(&KinectDOANode::audioInCallback, this));
 			freenect_start_audio(m_f_dev);
 
 			while((freenect_process_events(m_f_ctx) >= 0) && ros::ok());
@@ -136,7 +140,7 @@ class KinectDOANode {
 
 		void update() {
 			// Wait for new data to be available
-			boost::unique_lock<boost::mutex> lock(data_ready_mutex);
+			boost::unique_lock<boost::mutex> lock(m_sound_data_ready_mutex);
 			while(!m_sound_data_ready) {
 				m_sound_data_ready_cond.wait(lock);
 			}
