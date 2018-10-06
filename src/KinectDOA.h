@@ -26,6 +26,8 @@ class KinectDOA {
 		double m_sound_speed;
 		double m_sample_freq;
 		unsigned int m_max_lag;
+		double m_white_noise_ratio;
+		double m_last_angle_estimate;
 };
 
 #endif // KINECT_DOA_H_INCLUDED
