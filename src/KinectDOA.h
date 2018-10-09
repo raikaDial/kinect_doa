@@ -14,7 +14,7 @@ class KinectDOA {
 		double findAngle();
 
 		std::vector<double*> m_xcor_data;
-		unsigned int m_numsamples_xcor;
+		int m_numsamples_xcor;
 
 		// Variables for white noise filter.
 		std::vector<uint64_t> m_sumd0;

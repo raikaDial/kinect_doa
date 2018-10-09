@@ -13,7 +13,7 @@ KinectDOA::KinectDOA(ros::NodeHandle nh) : m_nh(nh), m_sample_freq(16000), m_las
 	ros::NodeHandle pr_nh("~");
 	pr_nh.param<double>("sound_speed", m_sound_speed, 340);
 	pr_nh.param<double>("white_noise_ratio", m_white_noise_ratio, 0.65);
-	pr_nh.param<double>("numsamples_xcor", m_numsamples_xcor, 512*16);
+	pr_nh.param<int>("numsamples_xcor", m_numsamples_xcor, 8192);
 
 	// Compute the maximum width of our cross-correlation as limited by array
 	//     geometry, the speed of sound, and our sampling frequency
