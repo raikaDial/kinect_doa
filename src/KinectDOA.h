@@ -24,6 +24,7 @@ class KinectDOA {
 		bool isNoise();
 
 		ros::NodeHandle m_nh;
+		ros::Publisher m_servo_angle_pub;
 
 		// Variables to control angle estimation
 		double m_mic_positions[4];

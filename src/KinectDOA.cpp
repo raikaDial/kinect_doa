@@ -1,5 +1,6 @@
 #include "KinectDOA.h"
 #include <algorithm>
+#include <std_msgs/Float32.h>
 
 KinectDOA::KinectDOA(ros::NodeHandle nh) : m_nh(nh), m_sample_freq(16000), m_last_angle_estimate(0) {
 	// Approximate linear coordinates of the Kinect's built in microphones relative to the center of the device (in meters).
@@ -14,6 +15,8 @@ KinectDOA::KinectDOA(ros::NodeHandle nh) : m_nh(nh), m_sample_freq(16000), m_las
 	pr_nh.param<double>("sound_speed", m_sound_speed, 340);
 	pr_nh.param<double>("white_noise_ratio", m_white_noise_ratio, 0.65);
 	pr_nh.param<int>("numsamples_xcor", m_numsamples_xcor, 8192);
+
+	m_servo_angle_pub = m_nh.advertise<std_msgs::Float32>("servo_angle", 1);
 
 	// Compute the maximum width of our cross-correlation as limited by array
 	//     geometry, the speed of sound, and our sampling frequency
@@ -67,6 +70,11 @@ double KinectDOA::findAngle() {
 		if(sin_angle > 1) m_last_angle_estimate =  90.0;
 		else if(sin_angle < -1) m_last_angle_estimate = -90.0;
 		else m_last_angle_estimate = -asin(sin_angle)*180/M_PI;
+		ROS_INFO("New Angle Estimate: %lf\n", m_last_angle_estimate);
+
+		std_msgs::Float32 servo_angle_msg;
+		servo_angle_msg.data = m_last_angle_estimate;
+		m_servo_angle_pub.publish(servo_angle_msg);
 	}
 
 	return m_last_angle_estimate;

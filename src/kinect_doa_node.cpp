@@ -30,7 +30,7 @@ class KinectDOANode {
 			if (freenect_init(&m_f_ctx, NULL) < 0) {
 				ROS_ERROR("freenect_init() failed\n");
 			}
-			freenect_set_log_level(m_f_ctx, FREENECT_LOG_FATAL);
+			//freenect_set_log_level(m_f_ctx, FREENECT_LOG_FATAL);
 
 			// Need to upload special firmware for Kinect #1473
 			// For some reason, if we try to upload this when the camera and motor subdevices are selected, the upload will
@@ -153,7 +153,7 @@ class KinectDOANode {
 
 			// Calculate DOA
 			double angle = m_kinect_doa.findAngle();
-			ROS_INFO("Angle to event: %lf\n", angle);
+			//ROS_INFO("Angle to event: %lf\n", angle);
 
 			m_sound_data_ready = false;
 		}
