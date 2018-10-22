@@ -1,9 +1,20 @@
 <launch>
 	<node type="kinect_doa_node" pkg="kinect_doa" name="kinect_doa_node" output="screen">
+		<!-- White noise ratio of Kinect environment. Controls white noise filter. -->
+		<!-- The higher the ratio, the less responsive the system will be, and vice-versa -->
 		<param name="white_noise_ratio" type="double" value="0.48"/>
+
+		<!-- Speed of sound. If Kinect is at a high elevation, modify for greater accuracy -->
+		<param name="sound_speed" type="double" value="340.0"/>
 	</node>
-	<node type="serial_node.py" pkg="rosserial_python" name="serial_node" output="screen">
-		<param name="port" value="/dev/ttyACM0"/>
+
+	<node type="servo_node" pkg="kinect_doa" name="servo_node" output="screen">
+		<!-- Minimum and maximum servo microseconds -->
+		<param name="min_us" type="int" value="500"/>
+		<param name="max_us" type="int" value="2500"/>
+
+		<!-- Maximum angle of the servo -->
+		<param name="max_deg" type="int" value="270"/>
 	</node>
 </launch>
 

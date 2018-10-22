@@ -204,5 +204,5 @@ int main(int argc, char** argv) {
 	}
 
 	delete kinect_doa_node;
-
+	return 0;
 }
