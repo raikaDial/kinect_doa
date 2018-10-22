@@ -27,6 +27,10 @@ catkin_package()
 ## Build ##
 ###########
 
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
 add_library(minidsp
   src/minidsp.c
 )
@@ -48,5 +52,5 @@ target_link_libraries(kinect_doa_node
 )
 target_link_libraries(servo_node
   ${catkin_LIBRARIES}
-  wiringpi
+  wiringPi
 )

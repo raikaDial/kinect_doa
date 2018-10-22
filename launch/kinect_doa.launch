@@ -8,7 +8,7 @@
 		<param name="sound_speed" type="double" value="340.0"/>
 	</node>
 
-	<node type="servo_node" pkg="kinect_doa" name="servo_node" output="screen">
+	<node type="servo_node" pkg="kinect_doa" name="servo_node" output="screen" launch-prefix="sudo -E">
 		<!-- Minimum and maximum servo microseconds -->
 		<param name="min_us" type="int" value="500"/>
 		<param name="max_us" type="int" value="2500"/>

@@ -35,6 +35,7 @@ class ServoController {
 				
 				
 				pinMode(18, PWM_OUTPUT); // Configure GPIO18 for PWM control of servo
+				pwmSetMode(PWM_MODE_MS); // Mark:space mode, standard PWM
 
 				// PWM Frequency (Hz) = 19.2e6 Hz / pwmClock / pwmRange
 				//     Analog servos expect a frequency of 50 Hz
@@ -44,22 +45,25 @@ class ServoController {
 				//     0 to 180 degrees, this gives us an angular resolution of 0.9 degrees.
 				//     The max range for the Pi's PWM hardware is 4096, so this is about the 
 				//     best resolution we can get.
-				pwmSetRange(4000);
 				pwmSetClock(96);
+				pwmSetRange(4000);
 
 				// Move the servo to the centerpoint
 				m_target = m_centerpoint_us;
 				m_current = m_target;
-				pwmWrite(18, m_current);
+				// With a pwm clock of 192 and range of 2000, pwmWrite input is one-to-one with microseconds/10.
+				//    But since we doubled the resolution, we have to multiply our microseconds/10 by 2.
+				
+				pwmWrite(18, 2*m_current/10);
 
 				// Setup servo angle subscriber
-				m_servo_sub = m_nh.subscribe("servo_angle", 1, ServoController::servoAngleCallback, this);
+				m_servo_angle_sub = m_nh.subscribe("servo_angle", 1, &ServoController::servoAngleCallback, this);
 			}
 
 		}
 
 		void servoAngleCallback(const std_msgs::Float32::ConstPtr & angle) {
-			m_target = (uint16_t) (m_centerpoint_us + angle.data*m_us_per_deg);
+			m_target = (uint16_t) (m_centerpoint_us + (angle -> data)*m_us_per_deg);
 		}
 
 		void update() {
@@ -75,12 +79,13 @@ class ServoController {
 					}
 				}
 				else if(m_current > m_target) {
-					m_current -= m_target
+					m_current -= m_us_per_deg;
 					if(m_current < m_target) {
-						m_current = m_target
+						m_current = m_target;
 					}
 				}
-				pwmWrite(18, m_current);
+				ROS_INFO("Writing %u micros to servo.\n", m_current);
+				pwmWrite(18, 2*m_current/10);
 				m_time_last_write = ros::Time::now();
 			}
 		}
@@ -106,6 +111,7 @@ int main(int argc, char** argv) {
 	ros::NodeHandle nh;
 
 	ServoController servo_controller(nh);
+	ROS_INFO("Servo controller initialized.\n");
 
 	while(ros::ok()) {
 		ros::spinOnce();
